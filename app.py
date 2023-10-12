@@ -3,22 +3,49 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.colors import HexColor
 from reportlab.platypus import Image as RLImage
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 import base64
 from io import BytesIO
 
+
+pdfmetrics.registerFont(TTFont('Orbitron-Bold', 'Orbitron-Bold.ttf'))
+
 # Configuración de la página de Streamlit
 st.set_page_config(
-    page_title="Generador de Carnet",
+    page_title="Generador de Carnets Evoke",
     page_icon="🕵️‍♂️",
     layout="centered",
 )
 
 # Título de la aplicación
-st.title("Generador de Carnet de Agente Secreto")
+st.title("Generador de Carnets Evoke")
+
+# Ruta de la imagen de fondo
+ruta_fondo = "CarnetPremiumFondo.png"
+
+# Tamaño del carnet
+ancho_carnet = 290
+alto_carnet = 180
+
+# Posición del carnet en la página
+x_carnet = (letter[0] - ancho_carnet) / 2
+y_carnet = (letter[1] - alto_carnet) / 2
+
+# Definir colores personalizados
+color_fondo = HexColor("#222222")  # Fondo oscuro
+color_marco = HexColor("#FFFFFF")   # Marco amarillo brillante
+color_letra_grande = HexColor("#FFFFFF")   # Blanco
+color_letra_pequena = HexColor("#FFFFFF")   # Blanco
+color_marco_foto = HexColor("#8ae0db")   # Gris claro
+
+
 
 # Campos de entrada
 nombre = st.text_input("Nombre:")
 equipo = st.text_input("Equipo:")
+organizacion = st.selectbox("Organizacion", ["Org 1", "Org 2", "Org 3"])
+
 identificacion = st.text_input("Identificación:")
 rol = st.selectbox("Rol:", ["Rol 1", "Rol 2", "Rol 3"])
 foto_perfil = st.file_uploader("Subir Foto de Perfil", type=["jpg", "png"])
@@ -27,39 +54,52 @@ foto_perfil = st.file_uploader("Subir Foto de Perfil", type=["jpg", "png"])
 if st.button("Generar Carnet"):
     # Crear un objeto PDF en memoria
     buffer = BytesIO()
-    pdf = canvas.Canvas(buffer, pagesize=letter)
-    
-    # Definir colores personalizados
-    color_fondo = HexColor("#222222")  # Fondo oscuro
-    color_marco = HexColor("#FFFF00")   # Marco amarillo brillante
-    
+    pdf = canvas.Canvas(buffer, pagesize=letter) 
+
+
+
+      
     # Configurar fondo y marco
     pdf.setFillColor(color_fondo)
-    pdf.rect(20, 20, 580, 340, fill=True)
-    pdf.setStrokeColor(color_marco)
-    pdf.rect(10, 10, 600, 350, stroke=True)
+    pdf.rect(x_carnet, y_carnet, ancho_carnet, alto_carnet, fill=True)
+  
+    # Agregar la imagen de fondo al carnet
+
+    pdf.drawImage(ruta_fondo, x_carnet, y_carnet, width=ancho_carnet, height=alto_carnet, preserveAspectRatio=True)
+
+
+    pdf.setStrokeColor(color_marco_foto)
+    pdf.rect(x_carnet, y_carnet, ancho_carnet, alto_carnet, stroke=True)
     
     # Agregar el nombre de la organización
-    pdf.setFont("Helvetica-Bold", 16)
-    pdf.setFillColor(color_marco)
-    pdf.drawString(30, 320, "Evoke - Agencia Secreta")
+    pdf.setFont("Orbitron-Bold", 30)
+    pdf.setFillColor(color_letra_grande)
+    pdf.drawString(x_carnet+ancho_carnet/2-58, y_carnet+alto_carnet/2+30, "AGENTE")
     
     # Agregar detalles del agente
-    pdf.setFont("Helvetica", 12)
-    pdf.setFillColor(color_marco)
-    pdf.drawString(30, 280, "Nombre: " + nombre)
-    pdf.drawString(30, 260, "Equipo: " + equipo)
-    pdf.drawString(30, 240, "Identificación: " + identificacion)
-    pdf.drawString(30, 220, "Rol: " + rol)
-    
+    pdf.setFont("Orbitron-Bold", 14)
+    pdf.setFillColor(color_letra_grande)
+    pdf.drawString(x_carnet+ancho_carnet/2-58, y_carnet+alto_carnet/2+10, nombre)
+    pdf.drawString(30, 700, "Equipo: " + equipo)
+    pdf.drawString(30, 680, "Organización: " + organizacion)
+    pdf.drawString(30, 660, "Identificación: " + identificacion)
+    pdf.drawString(30, 640, "Rol: " + rol)
+
     # Agregar la foto de perfil si se ha subido
     if foto_perfil is not None:
         image = RLImage(foto_perfil)
-        image.drawHeight = 80
-        image.drawWidth = 80
-        image.wrap(80, 80)
-        image.drawOn(pdf, 420, 220)
-    
+        image.drawHeight = 50
+        image.drawWidth = 50
+        image.wrap(50, 50)
+
+        #image.drawOn(pdf, 190, 680)
+        #image.drawOn(pdf, 10, 10)
+        image.drawOn(pdf, x_carnet+ancho_carnet/2-110, y_carnet+alto_carnet/2+5)
+        pdf.setFillColor(color_marco)
+        pdf.rect(x_carnet+ancho_carnet/2-110, y_carnet+alto_carnet/2+5, 50, 50, stroke=True)
+
+
+ 
     # Guardar el PDF en el búfer de memoria
     pdf.showPage()
     pdf.save()
