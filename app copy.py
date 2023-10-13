@@ -46,8 +46,6 @@ def success():
 
 # Contraseña correcta
 contrasena_correcta = "12345"
-contrasena_aceptada = "inicial"
-
 
 
 # Fuentes ReportLab
@@ -86,27 +84,28 @@ color_marco_foto = HexColor("#8ae0db")   # Gris claro
 
 # Inicia la interfaz
 st.sidebar.image(ruta_inicio, use_column_width=True)
+contrasena_aceptada="No"
 
 
 # Campo de contraseña
-
-contrasena_ingresada = st.sidebar.text_input("Ingresa la Contraseña", type="password")
+contrasena_ingresada = st.sidebar.text_input("Introduce la Contraseña", type="password")
 
 
 
 # Botón para enviar
-if contrasena_ingresada == contrasena_correcta:
-    contrasena_aceptada="Si"
+if st.sidebar.button("Enviar"):
+    if contrasena_ingresada == contrasena_correcta:
+        st.success("Contraseña Correcta. Acceso Permitido.")
 
-else:
-    contrasena_aceptada="No"
+        contrasena_aceptada="Si"
+    
+    
+    
+    else:
+        st.error("Contraseña Incorrecta. Acceso Denegado.")
 
+        contrasena_aceptada="No"
 
-if contrasena_aceptada=="Si":
-    st.success("Contraseña Correcta. Acceso Permitido.")
-
-if contrasena_aceptada=="No":
-    st.error("Contraseña Incorrecta. Acceso Denegado.")
 
 
 
@@ -121,7 +120,7 @@ if contrasena_aceptada == "Si":
 
     identificacion = st.text_input("Identificación:")
     rol = st.selectbox("Seleccione", ["Colaborador profundo", "Visionario creativo", "Solucionador de problemas"])
-    foto_perfil = st.file_uploader("Subir Foto de Perfil", type=["jpg", "png"], help="Se recomienda subir una foto cuadrada")
+    foto_perfil = st.file_uploader("Subir Foto de Perfil", type=["jpg", "png"])
 
     # Botón para generar el carnet
     if st.button("Generar Carnet"):
@@ -129,13 +128,16 @@ if contrasena_aceptada == "Si":
         buffer = BytesIO()
         pdf = canvas.Canvas(buffer, pagesize=letter) 
 
+        
         # Configurar fondo y marco
         pdf.setFillColor(color_fondo)
         pdf.rect(x_carnet, y_carnet, ancho_carnet, alto_carnet, fill=True)
 
         # Agregar la imagen de fondo al carnet
+
         pdf.drawImage(ruta_fondo_anverso, x_carnet, y_carnet, width=ancho_carnet, height=alto_carnet, preserveAspectRatio=True)
         pdf.drawImage(ruta_fondo_reverso, x_carnet, y_carnet-alto_carnet+10, width=ancho_carnet, height=alto_carnet, preserveAspectRatio=True)
+
 
         pdf.setStrokeColor(color_marco_foto)
         pdf.rect(x_carnet, y_carnet, ancho_carnet, alto_carnet, stroke=True)
@@ -159,6 +161,8 @@ if contrasena_aceptada == "Si":
         pdf.drawString(x_carnet+ancho_carnet/2-86, y_carnet-alto_carnet+10+alto_carnet/2+25, "Organización: " + organizacion)
         pdf.drawString(x_carnet+ancho_carnet/2-86, y_carnet-alto_carnet+10+alto_carnet/2+40, "Identificación: " + identificacion)
 
+
+
         # Agregar la foto de perfil si se ha subido
         if foto_perfil is not None:
             image = RLImage(foto_perfil)
@@ -171,6 +175,8 @@ if contrasena_aceptada == "Si":
             image.drawOn(pdf, x_carnet+ancho_carnet/2-110, y_carnet+alto_carnet/2+5)
             pdf.setFillColor(color_marco)
             pdf.rect(x_carnet+ancho_carnet/2-110, y_carnet+alto_carnet/2+5, 50, 50, stroke=True)
+
+
 
         # Guardar el PDF en el búfer de memoria
         pdf.showPage()
